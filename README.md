@@ -21,42 +21,42 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 ```
 
 ## Problem background and motivation
-The problem at hand consists on mapping the *signals* (i.e. information) of illiquid assets to signals of liquid assets. The idea here is of course that one prefers to hold liquid assets over illiquid assets. The reason for this is actually more profund than just because you then have a tighter control on what you can do with your assets and when. For instance, one can easily see that when you are limited by liquidity, your initial investment cannot be as large as you wish, so if you want to invest a large sum you will have to dosify it during a long period of time. But then your total investment is not benefiting from the exponential growth from the start but progressively over a long period. Mathematically, for a total investment $I_0$ on a liquid asset with return $R$ over a time $t$ one has
-$$
+The problem at hand consists on mapping the *signals* (i.e. information) of illiquid assets to signals of liquid assets. The idea here is of course that one prefers to hold liquid assets over illiquid assets. The reason for this is actually more profund than just because you then have a tighter control on what you can do with your assets and when. For instance, one can easily see that when you are limited by liquidity, your initial investment cannot be as large as you wish, so if you want to invest a large sum you will have to dosify it during a long period of time. But then your total investment is not benefiting from the exponential growth from the start but progressively over a long period. Mathematically, for a total investment $`I_0`$ on a liquid asset with return $`R`$ over a time $`t`$ one has
+$$`
 I_t^L = I_0 R^t = \frac{I_0}{n}(R^t + R^t + \cdots).
-$$
+`$$
 However, for an illiquid asset one is forced to split this investment into $n$ chunks and one yields instead
-$$
+$$`
 I_t^I = \frac{I_0}{n} R^t + \frac{I_0}{n} R^{t-1} + \cdots = \frac{I_0}{n}(R^t + R^{t-1}+ \cdots),
-$$
+`$$
 which clearly makes it a worse investment!
 
  Thus, it would be great if we can predict, using available signals from illiquid assets, signals of liquid assets. One simple example of this might be predicting how a (liquid) real state fund will behave based on the information available on the housing market (which is more illiquid). In this way you dont need to get into the difficult position of owning (and managing) houses and instead you invest on the liquid shares of real states funds whose value will correlate with the housing market you studied.
 
 ## Problem statement
-As explained above, we are looking for a map $f:\text{iliquid}\rightarrow \text{liquid}$. So what do we exactly have? Well we have information on $M$ liquid assets, which we want to predict, and $N$ iliquid assets, which will be used to predict. In particular, we have two different type of quantities for each liquid and illiquid asset at our disposal: the daily return and a unique set of industry group identifiers which tells us roughly in which sector each asset is. Mathematically we have:
+As explained above, we are looking for a map $`f:\text{iliquid}\rightarrow \text{liquid}`$. So what do we exactly have? Well we have information on $`M`$ liquid assets, which we want to predict, and $`N`$ iliquid assets, which will be used to predict. In particular, we have two different type of quantities for each liquid and illiquid asset at our disposal: the daily return and a unique set of industry group identifiers which tells us roughly in which sector each asset is. Mathematically we have:
 <center>
 
 |               | Liquid | Illiquid |
 | :------------ | :------: | :----: |
-| Returns        |   $\{ Y_j^t \in \mathbb{R} \} \text{ for } t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,M\}$   |  $\{ X_j^t \in \mathbb{R}\} \text{ for }  t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,N\}$ |
-| Industry group        |   $\{ A_n^j \in \mathbb{Z^+}\} \text{ for } j \in \{1,\cdots,M\} \text{ and } n \in \{1,\cdots,4\} $   |   $\{ B_n^j \in \mathbb{Z^+} \} \text{ for } j \in \{1,\cdots, N\}  \text{ and } n \in \{1,\cdots,4\} $ |
+| Returns        |   $`\{ Y_j^t \in \mathbb{R} \} \text{ for } t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,M\}`$   |  $`\{ X_j^t \in \mathbb{R}\} \text{ for }  t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,N\}`$ |
+| Industry group        |   $`\{ A_n^j \in \mathbb{Z^+}\} \text{ for } j \in \{1,\cdots,M\} \text{ and } n \in \{1,\cdots,4\} `$   |   $`\{ B_n^j \in \mathbb{Z^+} \} \text{ for } j \in \{1,\cdots, N\}  \text{ and } n \in \{1,\cdots,4\} `$ |
 </center>
 
-where note that neither $A^j_n$ nor $B^j_n$  depend on the time $t$.
+where note that neither $`A^j_n`$ nor $`B^j_n`$  depend on the time $`t`$.
 
 There is just one small catch: we are told that
 
 > the dates are randomized and anonymized so there is no continuity or link between any dates.
 
- Thus, there is not much point in making $Y$ depend on $t$ so instead, we are going to treat each different day as an independent observation of the same random process for the purposes of training. In fact, the days inside the test data are not even present in the training data. So a priori, we propose the following map
-$$ 
+ Thus, there is not much point in making $`Y`$ depend on $`t`$ so instead, we are going to treat each different day as an independent observation of the same random process for the purposes of training. In fact, the days inside the test data are not even present in the training data. So a priori, we propose the following map
+$$` 
 Y_j = f(X_1,\cdots,X_N; A^j_1,\cdots,A^j_4, B_1^1,B^1_2,\cdots,B^2_1,\cdots,B_N^4 ),  \text{ for each }  j\in \{1,\cdots,M\} 
-$$
+`$$
 
-where this expression is understood to be implicitly evaluated for the same $t$. 
+where this expression is understood to be implicitly evaluated for the same $`t`$. 
 
-Note that we are here assumming that knowing what $A^j_n$'s the other $Y_{k\neq j}$ have shouldnt influence on how $Y_j$ is correlated with the iliquid data. Whether or not this assumption is entirely correct might be beyond the question as, at least a priori, it might be a source of overfitting.
+Note that we are here assumming that knowing what $`A^j_n`$'s the other $`Y_{k\neq j}`$ have shouldnt influence on how $`Y_j`$ is correlated with the iliquid data. Whether or not this assumption is entirely correct might be beyond the question as, at least a priori, it might be a source of overfitting.
 
 So where do we start? Which model do we choose? Let's first have a look at the data. 
 
