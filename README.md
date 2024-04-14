@@ -21,7 +21,7 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 ```
 
 ## Problem background and motivation
-The problem at hand consists on mapping the *signals* (i.e. information) of illiquid assets to signals of liquid assets. The idea here is of course that one prefers to hold liquid assets over illiquid assets. The reason for this is actually more profund than just because you then have a tighter control on what you can do with your assets and when. For instance, one can easily see that when you are limited by liquidity, your initial investment cannot be as large as you wish, so if you want to invest a large sum you will have to dosify it during a long period of time. But then your total investment is not benefiting from the exponential growth from the start but progressively over a long period. Mathematically, for a total investment $``I_0``$ on a liquid asset with return $``R``$ over a time $``t``$ one has
+The problem at hand consists on mapping the *signals* (i.e. information) of illiquid assets to signals of liquid assets. The idea here is of course that one prefers to hold liquid assets over illiquid assets. The reason for this is actually more profund than just because you then have a tighter control on what you can do with your assets and when. For instance, one can easily see that when you are limited by liquidity, your initial investment cannot be as large as you wish, so if you want to invest a large sum you will have to dosify it during a long period of time. But then your total investment is not benefiting from the exponential growth from the start but progressively over a long period. Mathematically, for a total investment $`I_0`$ on a liquid asset with return $`R`$ over a time $`t`$ one has
 $$I_t^L = I_0 R^t = \frac{I_0}{n}(R^t + R^t + \cdots).$$
 However, for an illiquid asset one is forced to split this investment into $`n`$ chunks and one yields instead
 $$I_t^I = \frac{I_0}{n} R^t + \frac{I_0}{n} R^{t-1} + \cdots = \frac{I_0}{n}(R^t + R^{t-1}+ \cdots),$$
@@ -30,27 +30,27 @@ which clearly makes it a worse investment!
  Thus, it would be great if we can predict, using available signals from illiquid assets, signals of liquid assets. One simple example of this might be predicting how a (liquid) real state fund will behave based on the information available on the housing market (which is more illiquid). In this way you dont need to get into the difficult position of owning (and managing) houses and instead you invest on the liquid shares of real states funds whose value will correlate with the housing market you studied.
 
 ## Problem statement
-As explained above, we are looking for a map $``f:\text{iliquid}\rightarrow \text{liquid}`$. So what do we exactly have? Well we have information on $``M``$ liquid assets, which we want to predict, and $``N``$ iliquid assets, which will be used to predict. In particular, we have two different type of quantities for each liquid and illiquid asset at our disposal: the daily return and a unique set of industry group identifiers which tells us roughly in which sector each asset is. Mathematically we have:
+As explained above, we are looking for a map $`f:\text{iliquid}\rightarrow \text{liquid}`$. So what do we exactly have? Well we have information on $`M`$ liquid assets, which we want to predict, and $`N`$ iliquid assets, which will be used to predict. In particular, we have two different type of quantities for each liquid and illiquid asset at our disposal: the daily return and a unique set of industry group identifiers which tells us roughly in which sector each asset is. Mathematically we have:
 <center>
 
 |               | Liquid | Illiquid |
 | :------------ | :------: | :----: |
-| Returns        |   $``\{ Y_j^t \in \mathbb{R} \} \text{ for } t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,M\}``$   |  $``\{ X_j^t \in \mathbb{R}\} \text{ for }  t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,N\}``$ |
-| Industry group        |   $``\{ A_n^j \in \mathbb{Z^+}\} \text{ for } j \in \{1,\cdots,M\} \text{ and } n \in \{1,\cdots,4\} ``$   |   $``\{ B_n^j \in \mathbb{Z^+} \} \text{ for } j \in \{1,\cdots, N\}  \text{ and } n \in \{1,\cdots,4\} ``$ |
+| Returns        |   $`\{ Y_j^t \in \mathbb{R} \} \text{ for } t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,M\}`$   |  $`\{ X_j^t \in \mathbb{R}\} \text{ for }  t\in \{t_1, \cdots, t_T\} \text{ and } j \in \{1,\cdots,N\}`$ |
+| Industry group        |   $`\{ A_n^j \in \mathbb{Z^+}\} \text{ for } j \in \{1,\cdots,M\} \text{ and } n \in \{1,\cdots,4\} `$   |   $`\{ B_n^j \in \mathbb{Z^+} \} \text{ for } j \in \{1,\cdots, N\}  \text{ and } n \in \{1,\cdots,4\} `$ |
 </center>
 
-where note that neither $``A^j_n``$ nor $``B^j_n``$  depend on the time $``t`$.
+where note that neither $`A^j_n`$ nor $`B^j_n`$  depend on the time $`t`$.
 
 There is just one small catch: we are told that
 
 > the dates are randomized and anonymized so there is no continuity or link between any dates.
 
- Thus, there is not much point in making $``Y``$ depend on $``t``$ so instead, we are going to treat each different day as an independent observation of the same random process for the purposes of training. In fact, the days inside the test data are not even present in the training data. So a priori, we propose the following map
+ Thus, there is not much point in making $`Y`$ depend on $`t`$ so instead, we are going to treat each different day as an independent observation of the same random process for the purposes of training. In fact, the days inside the test data are not even present in the training data. So a priori, we propose the following map
 $$Y_j = f(X_1,\cdots,X_N; A^j_1,\cdots,A^j_4, B_1^1,B^1_2,\cdots,B^2_1,\cdots,B_N^4 ),  \text{ for each }  j\in \{1,\cdots,M\}$$
 
-where this expression is understood to be implicitly evaluated for the same $``t`$. 
+where this expression is understood to be implicitly evaluated for the same $`t`$. 
 
-Note that we are here assumming that knowing what $``A^j_n`$'s the other $``Y_{k\neq j}``$ have shouldnt influence on how $``Y_j``$ is correlated with the iliquid data. Whether or not this assumption is entirely correct might be beyond the question as, at least a priori, it might be a source of overfitting.
+Note that we are here assumming that knowing what $`A^j_n`$'s the other $`Y_{k\neq j}`$ have shouldnt influence on how $`Y_j`$ is correlated with the iliquid data. Whether or not this assumption is entirely correct might be beyond the question as, at least a priori, it might be a source of overfitting.
 
 So where do we start? Which model do we choose? Let's first have a look at the data. 
 
@@ -1200,38 +1200,27 @@ Armed with the lessons learned above, let's begin by reorganising the data. How 
 
 Given the problem and the scarcity of data, it is hard not to start with a linear model of some sort. Thus we could propose 
 $$\hat{Y}_j = \sum_k X_k \beta^k_j + \sum_{lk} B_k^l \alpha_{lj}^k + \sum_k A_k^j \gamma_j^k + m_j,$$
-where we again implicitly assume $``Y_j`$ and $``X_k`$ are at the same time $``t`$ and matrices $``B_k^l`$ and $``A_k^j`$ store all the asset coefficients. One could reasonably argue that in fact only the difference between $``B`$ and $``A`$ are important as this difference tells you how relevant one particular $``X_k`$ given how similar is for a given $``Y_j$. We propose that models like 
-$$
-\hat{Y}_j = \sum_{kn} \frac{X_k}{1 + (B_n^k-A_n^j)^2} \beta^{kn}_j + m_j, 
-$$
-are very reasonable and deserve full attention. Think about it, if $``B_n^k\approx A_n^j`$ then $``X_k`$ is left untouch, however if $``B_n^k\neq A_n^j`$ then $``X_k`$ is suppressed by their difference squared (the $``1`$ just avoids $``1/0$).  While the above expression is mathematically sound, it is a bit cumbersome to deal with since we are dealing with higher rank tensors for no good reason. We are essentially doing feature engineering so we can instead redefine what the features are by defining a new vector of features for each target $``Y_j$
-$$
-\vec{F_j} = \left(1,\frac{X_1}{1+(B_1^1-A_1^j)^2},\frac{X_1}{1+(B_2^1-A_2^j)^2},\cdots, \frac{X_2}{1+(B_1^2-A_1^j)^2}, \cdots,\frac{X_N}{1+(B_4^N-A_4^j)^2} \right), \quad \text{where} \quad  \vec{F_j} \in \mathbb{R}^P
-$$
+where we again implicitly assume $`Y_j`$ and $`X_k`$ are at the same time $`t`$ and matrices $`B_k^l`$ and $`A_k^j`$ store all the asset coefficients. One could reasonably argue that in fact only the difference between $`B`$ and $`A`$ are important as this difference tells you how relevant one particular $`X_k`$ given how similar is for a given $`Y_j`$. We propose that models like 
+$$\hat{Y}_j = \sum_{kn} \frac{X_k}{1 + (B_n^k-A_n^j)^2} \beta^{kn}_j + m_j,$$
+are very reasonable and deserve full attention. Think about it, if $`B_n^k\approx A_n^j`$ then $`X_k`$ is left untouch, however if $`B_n^k\neq A_n^j`$ then $`X_k`$ is suppressed by their difference squared (the $`1`$ just avoids $`1/0`$).  While the above expression is mathematically sound, it is a bit cumbersome to deal with since we are dealing with higher rank tensors for no good reason. We are essentially doing feature engineering so we can instead redefine what the features are by defining a new vector of features for each target $`Y_j`$
+$$\vec{F_j} = \left(1,\frac{X_1}{1+(B_1^1-A_1^j)^2},\frac{X_1}{1+(B_2^1-A_2^j)^2},\cdots, \frac{X_2}{1+(B_1^2-A_1^j)^2}, \cdots,\frac{X_N}{1+(B_4^N-A_4^j)^2} \right), \quad \text{where} \quad  \vec{F_j} \in \mathbb{R}^P$$
 so that
 $$
 \hat{Y}_j = \vec{F_j} \cdot \vec{\beta_j}, \quad \text{where} \quad \vec{\beta_j}[0]=m_j.
 $$
-Now this model is manifestly of the form of the linear models we are used to deal with. From now on, I will drop index $``j`$ as it is clear that with this model nor the loss nor the predicted $``Y_j`$ depend on anything with $``k\neq j$.  Now if we use a mean squared error as our loss function then we already know that
-$$
-\mathcal{L} = \frac{1}{2S} \sum_\alpha^S (Y^\alpha - \hat{Y}^\alpha)^2 \equiv \frac{1}{2S} \sum_\alpha^S (Y^\alpha -  \vec{F}^\alpha \cdot \vec{\beta})^2 \quad \text{ then } \quad \partial_{\beta_j}\mathcal{L} = 0 \implies \vec{\beta} = (F^T F)^{-1} F^T \vec{y},
-$$
-where again here $``\vec{\beta}`$ is the entries of what we denoted above $``\vec{\beta_j}`$ for some particular $``j`$ and $``F\in \mathbb{R}^{S\times P}`$ is the matrix with $``S`$ rows (one for each observation) an $``P`$ columns (one for each flattened feature, c.f. definition of  $``\vec{F_j}`$ above).
+Now this model is manifestly of the form of the linear models we are used to deal with. From now on, I will drop index $`j`$ as it is clear that with this model nor the loss nor the predicted $`Y_j`$ depend on anything with $`k\neq j`$.  Now if we use a mean squared error as our loss function then we already know that
+$$\mathcal{L} = \frac{1}{2S} \sum_\alpha^S (Y^\alpha - \hat{Y}^\alpha)^2 \equiv \frac{1}{2S} \sum_\alpha^S (Y^\alpha -  \vec{F}^\alpha \cdot \vec{\beta})^2 \quad \text{ then } \quad \partial_{\beta_j}\mathcal{L} = 0 \implies \vec{\beta} = (F^T F)^{-1} F^T \vec{y},$$
+where again here $`\vec{\beta}`$ is the entries of what we denoted above $`\vec{\beta_j}`$ for some particular $`j`$ and $`F\in \mathbb{R}^{S\times P}`$ is the matrix with $`S`$ rows (one for each observation) an $`P`$ columns (one for each flattened feature, c.f. definition of  $`\vec{F_j}`$ above).
 
-Before moving on I feel like there is one last technical detail worth commenting. We weighted the returns above so that assets that are different are suppressed. But, what makes two different assets far away? Well, at first glance we assumed that two assets are different if their $``A$'s and $``B$'s are different or in other words we essentially assumed
-$$
-\textrm{dist}(R_j,R_k) = \sum_n (A_n^j-B^k_n)^2,
-$$
-but maybe there are some $``A_n^j$'s that contribute more in distinguishing assets, so shouldnt we find out a set of $``\beta_m$'s to weight the above euclidian distance
-$$
-\textrm{dist}(R_j,R_k) = \sum_n \beta_n (A_n^j-B^k_n)^2,
-$$
-what about other distance functions? Well first of all, the answer is we have implicitly already fitted those $``\beta_m$'s. The reason behind why we have split each return into $``4`$ different weighted returns is to allow each to have its own coefficient (from the linear regression for instance). In this way, the learning algorithm will have these independent pieces of information to play with. Having said that, there are indeed alternative ways we could think of to estimate these $``\beta_m$'s, for instance by cooking some loss function that demands two assets that behave similarly over all available observations to be close in some precise sense. However, we will not persue this direction now and rather focus on the bigger picture.
+Before moving on I feel like there is one last technical detail worth commenting. We weighted the returns above so that assets that are different are suppressed. But, what makes two different assets far away? Well, at first glance we assumed that two assets are different if their $`A`$'s and $`B`$'s are different or in other words we essentially assumed
+$$\textrm{dist}(R_j,R_k) = \sum_n (A_n^j-B^k_n)^2,$$
+but maybe there are some $`A_n^j`$'s that contribute more in distinguishing assets, so shouldnt we find out a set of $`\beta_m`$'s to weight the above euclidian distance
+$$\textrm{dist}(R_j,R_k) = \sum_n \beta_n (A_n^j-B^k_n)^2,$$
+what about other distance functions? Well first of all, the answer is we have implicitly already fitted those $`\beta_m`$'s. The reason behind why we have split each return into $`4`$ different weighted returns is to allow each to have its own coefficient (from the linear regression for instance). In this way, the learning algorithm will have these independent pieces of information to play with. Having said that, there are indeed alternative ways we could think of to estimate these $`\beta_m`$'s, for instance by cooking some loss function that demands two assets that behave similarly over all available observations to be close in some precise sense. However, we will not persue this direction now and rather focus on the bigger picture.
 
 ### Reshaping the data
-As argued, it is clear that the input data to predict the $``j`$ -th asset should  contain all the iliquid returns `RET_n` weighted with all the iliquid class coefficients `B_n_k` and the $``j`$ th liquid asset class coefficients `A_n_j`. So we will stack it like
-$$
-X_{train} = 
+As argued, it is clear that the input data to predict the $`j`$ -th asset should  contain all the iliquid returns `RET_n` weighted with all the iliquid class coefficients `B_n_k` and the $`j`$ th liquid asset class coefficients `A_n_j`. So we will stack it like
+$$X_{train} = 
 \begin{bmatrix}
     F[1]_j^{t=1} &  F[2]_j^{t=1} & \cdots  &  F[P]_j^{t=1} \\
      F[1]_j^{t=2} &  F[2]_j^{t=2} & \cdots  &  F[P]_j^{t=2} \\
@@ -1243,11 +1232,10 @@ Y_{train} = \begin{bmatrix}
     Y_j^{t=2} \\
     \vdots \\
     Y_j^{t=S} \\
-\end{bmatrix}.
-$$
+\end{bmatrix}.$$
 where each row is an individual (day) observation. 
 
-By looking at the data, we see we need to train $``100`$ individual linear models, one for each liquid asset as explained above. Let's extract the train data for one particular liquid asset from the total data and take it from there.
+By looking at the data, we see we need to train $`100`$ individual linear models, one for each liquid asset as explained above. Let's extract the train data for one particular liquid asset from the total data and take it from there.
 
 We begin by dropping the data on the rest of the liquid assets. 
 
@@ -2268,7 +2256,7 @@ weight_returns(X_train,X_supp,139)
 
 
 
-Sanity check: the first entry should be `RET_216/(1+(B^216_1-A^139_1)**2)` which is indeed $``0.004024/(1+(-0.729149-(-1.363192))^2)\approx 0.00287016$. Now for the training `Y_train` we simply do 
+Sanity check: the first entry should be `RET_216/(1+(B^216_1-A^139_1)**2)` which is indeed $`0.004024/(1+(-0.729149-(-1.363192))^2)\approx 0.00287016`$. Now for the training `Y_train` we simply do 
 
 
 ```python
@@ -2430,11 +2418,11 @@ data_to_train(X_train,Y_train,X_supp,139)
 which manifestly reproduces the above reformatting. 
 
 # Training the model
-### A brief comment on $``\textrm{det} (F^TF)$
+### A brief comment on $`\textrm{det} (F^TF)$
 
-With the data now properly aranged we are in a position to begin training the model. There is one last observation in order, as we will shortly see, the determinant of $``F^TF`$ is incredibly small. We will solve this problem with a straightforward PCA treatment.
+With the data now properly aranged we are in a position to begin training the model. There is one last observation in order, as we will shortly see, the determinant of $`F^TF`$ is incredibly small. We will solve this problem with a straightforward PCA treatment.
 
-Recal that the solution of the linear problem is given by $``\vec{\beta} = (F^T F)^{-1} F^T \vec{y}$, we thus have
+Recal that the solution of the linear problem is given by $`\vec{\beta} = (F^T F)^{-1} F^T \vec{y}$, we thus have
 
 
 ```python
@@ -2869,7 +2857,7 @@ plt.show()
     
 
 
-What an interesting feature this gap in the spectrum. With that cutoff at around $``100`$ eigenvalues (vertical line) this is screaming for PCA! 
+What an interesting feature this gap in the spectrum. With that cutoff at around $`100`$ eigenvalues (vertical line) this is screaming for PCA! 
 
 
 ```python
@@ -2889,7 +2877,7 @@ print(len(pca.explained_variance_ratio_))
     39
 
 
-With just `39` components we explained $``+99\%`$ of the data! We inspect the first principal component to see what we can learn.
+With just `39` components we explained $`+99\%`$ of the data! We inspect the first principal component to see what we can learn.
 
 
 ```python
@@ -2916,7 +2904,7 @@ plt.xlabel("features")
     
 
 
-First off, there seems to be no warning signs. We can also observe that weighted returns from `CLASS_2` tend to account for more variability than the rest . This makes sense, observe that it's the class closest to its average (which is $``0$) so one expects on average it's weighted return to be less suppressed. This is a direct consequence our model choice which deserves some caution.
+First off, there seems to be no warning signs. We can also observe that weighted returns from `CLASS_2` tend to account for more variability than the rest . This makes sense, observe that it's the class closest to its average (which is $`0$) so one expects on average it's weighted return to be less suppressed. This is a direct consequence our model choice which deserves some caution.
 
 
 ```python
@@ -3018,7 +3006,7 @@ beta_139.shape
 
 
 
-And the test is done using our proposed $``\hat{Y}_j = \vec{F_j} \cdot \vec{\beta_j}$
+And the test is done using our proposed $`\hat{Y}_j = \vec{F_j} \cdot \vec{\beta_j}$
 
 
 ```python
@@ -3084,7 +3072,7 @@ These coefficients seem small enough but they can get quite large when we use a 
 
 ## Linear model analysis
 
-It seems like with the particular model above we can get around $``60\%`$ test accurancy which is not too bad but not too great either. However, before we start drawing any conclusion let's squeeze this model all we can and see what we can learn. For this, we are going to wrap the above model in a single function and we are going to study the effect of tweeking the hyperparameters (number of principal components and test/train split) in detail. So here's what this function looks like:
+It seems like with the particular model above we can get around $`60\%`$ test accurancy which is not too bad but not too great either. However, before we start drawing any conclusion let's squeeze this model all we can and see what we can learn. For this, we are going to wrap the above model in a single function and we are going to study the effect of tweeking the hyperparameters (number of principal components and test/train split) in detail. So here's what this function looks like:
 
 
 ```python
@@ -3149,7 +3137,7 @@ inneficient_linear_model_stats(X_train,Y_train,X_supp,0.2,PCA_percent=0.99)
 
 
 
-Now that's much better! If we are going to fine tune this model we are going to need a more efficient way of doing so. Note that every time we call `inneficient_linear_model_stats(X_train,Y_train,X_supp,test_percent,PCA_percen)` we compute the PCA of the data which amounts at doing $``100`$ SVDs. But if all we want to be choosing is the number of principal components used this is unecessary! Let's instead define a function that returns all the PCA objects so that we can use them later on:
+Now that's much better! If we are going to fine tune this model we are going to need a more efficient way of doing so. Note that every time we call `inneficient_linear_model_stats(X_train,Y_train,X_supp,test_percent,PCA_percen)` we compute the PCA of the data which amounts at doing $`100`$ SVDs. But if all we want to be choosing is the number of principal components used this is unecessary! Let's instead define a function that returns all the PCA objects so that we can use them later on:
 
 
 ```python
@@ -3227,7 +3215,7 @@ linear_model_stats(model_PCAs,X_train,Y_train,X_supp,0.2,40)
 
 
 
-which is 4 times faster. It is reasonable then to see what happens as we increase the principal components from $``1`$ to $``250`$ since this is simply $``250\times 20s = 5000s \approx 1h30min$. Let's queue this one up and go for a walk:
+which is 4 times faster. It is reasonable then to see what happens as we increase the principal components from $`1`$ to $`250`$ since this is simply $`250\times 20s = 5000s \approx 1h30min`$. Let's queue this one up and go for a walk:
 
 
 ```python
@@ -3524,7 +3512,7 @@ plt.show()
     
 
 
-Now we are talking! Let's see what's the effect of adjusting the test set size too, but lets limit the no. of pca components to $``150$.
+Now we are talking! Let's see what's the effect of adjusting the test set size too, but lets limit the no. of pca components to $`150`$.
 
 
 ```python
@@ -3599,7 +3587,7 @@ plt.show()
     
 
 
-This is looking promising! We can smooth out that noise by, given one test/train split percentage, taking averages over different splits of the data. In physics this would be called disorder average and in machine learning is apparently called cross validation. Let's see if we can tune the model further! We estimate the time of the following simulation to be $``20s/(realisation\times component) \times 100 realisations \times 55 components = 110000s \approx 30h$! That's too long, let's optimise our `linear_model_stats` function further, it looks like loading the data over and over is unecesary and expensive, let's address this:
+This is looking promising! We can smooth out that noise by, given one test/train split percentage, taking averages over different splits of the data. In physics this would be called disorder average and in machine learning is apparently called cross validation. Let's see if we can tune the model further! We estimate the time of the following simulation to be $`20s/(realisation\times component) \times 100 realisations \times 55 components = 110000s \approx 30h$! That's too long, let's optimise our `linear_model_stats` function further, it looks like loading the data over and over is unecesary and expensive, let's address this:
 
 
 ```python
@@ -4000,7 +3988,7 @@ fast_linear_model_stats(model_PCAs,df_x_train,df_y_train,0.1,40)
 
 
 
-Which is almost a factor of $``10`$ faster! Now each realisation should be $``\approx 2min`$ so the entire thing should be around $``\approx 3h$. Armed with this new tool we can head back to our cross-validation:
+Which is almost a factor of $`10`$ faster! Now each realisation should be $`\approx 2min`$ so the entire thing should be around $`\approx 3h`$. Armed with this new tool we can head back to our cross-validation:
 
 We plot the average of our data:
 
@@ -4050,7 +4038,7 @@ plt.show()
     
 
 
-Perhaps too small of a test set? Let's see $``0.15$? Also, we probably dont need to average over $``100`$ realisations, look like it converges fast enough.
+Perhaps too small of a test set? Let's see $`0.15$? Also, we probably dont need to average over $`100`$ realisations, look like it converges fast enough.
 
 
 ```python
@@ -4172,13 +4160,13 @@ plt.show()
     
 
 
-`n_comp=19` it is!. It's clear at this stage that this model is capable of potentially reaching accurancies close to $``75\%$. Naturally, the more train data we have, the larger the test accurancy. At this stage, all we can hope for is to choose a particular number of PCA components based on the above considerations and hope for the best. For the data challenge, we could grind the best accurancy out by trying all reasonable no. of components but this is not the best use of my time. Hence I will stop tunning the linear model here. It is also worth commenting that I did try out adding regularisation to the model but this didnt seem to help. Insead of diving into analysis what else I tried but didnt work better I have decided, in the sake of time, to focus the discussion on the model interpretation and its subsequent submission.
+`n_comp=19` it is!. It's clear at this stage that this model is capable of potentially reaching accurancies close to $`75\%`$. Naturally, the more train data we have, the larger the test accurancy. At this stage, all we can hope for is to choose a particular number of PCA components based on the above considerations and hope for the best. For the data challenge, we could grind the best accurancy out by trying all reasonable no. of components but this is not the best use of my time. Hence I will stop tunning the linear model here. It is also worth commenting that I did try out adding regularisation to the model but this didnt seem to help. Insead of diving into analysis what else I tried but didnt work better I have decided, in the sake of time, to focus the discussion on the model interpretation and its subsequent submission.
 
 # Linear model interpretation and submission
 
 ## Submission
 
-The beautiful thing about linear models is that is one of the few models in machine learning that offers simple ways of **actually** understanding the model decision making. To illustrate this, let's quickly see what we can learn from (by now our favourite) target return `RET_139`. For that we need to translate the above lessons into a predicting model. As mentioned, we will choose $``19`$ principal components for our PCA and train on the entire data on this (to see if we can squeeze a last drop). Let's construct that function and test it works with the train set
+The beautiful thing about linear models is that is one of the few models in machine learning that offers simple ways of **actually** understanding the model decision making. To illustrate this, let's quickly see what we can learn from (by now our favourite) target return `RET_139`. For that we need to translate the above lessons into a predicting model. As mentioned, we will choose $`19`$ principal components for our PCA and train on the entire data on this (to see if we can squeeze a last drop). Let's construct that function and test it works with the train set
 
 
 ```python
@@ -4680,7 +4668,7 @@ Let's save our prediction:
 predicted_df.to_csv("./submission_PCA_" + str(PCA_n) + ".csv",index=False)
 ```
 
-Alright, `PCA_n=19` did well, $``\sim 73.9\% $``. Let's try a few more to see if we can get in the $``74\%$'s! Let's run a final overnight test to see if we can get a more educated guess than `PCA_n=19`:
+Alright, `PCA_n=19` did well, $`\sim 73.9\% $`. Let's try a few more to see if we can get in the $`74\%`$'s! Let's run a final overnight test to see if we can get a more educated guess than `PCA_n=19`:
 
 
 ```python
@@ -6786,7 +6774,7 @@ might be worth trying `PCA_n < 19`, but we will leave it here. What a great chal
 
 ## Model analysis and interpretation
 
-Before we put a stop to this challenge, let's take a moment to see what we can learn from our model. It is clear that in reality we hace $``N`$ independent linear models for each liquid return so it should sufices to study one particular liquid return, naturally: `RET_139`. Let's take a look at the $``\beta`$ coefficients of the model:
+Before we put a stop to this challenge, let's take a moment to see what we can learn from our model. It is clear that in reality we hace $`N`$ independent linear models for each liquid return so it should sufices to study one particular liquid return, naturally: `RET_139`. Let's take a look at the $`\beta`$ coefficients of the model:
 
 
 ```python
@@ -6830,7 +6818,7 @@ plt.title("Intercept = "+str(m[0]))
     
 
 
-Interestingly, the components that contribute the most to the prediction of the model are the 9th and the 16th components and there is very little intercept. (Note how the magnitude of the $``\beta$'s is already within reason: this is why adding regularisation didnt seem to help.) Let's take a look at why this might be. Well, first off, the average returns of `RET_139` are
+Interestingly, the components that contribute the most to the prediction of the model are the 9th and the 16th components and there is very little intercept. (Note how the magnitude of the $`\beta`$'s is already within reason: this is why adding regularisation didnt seem to help.) Let's take a look at why this might be. Well, first off, the average returns of `RET_139` are
 
 
 ```python
@@ -7229,7 +7217,7 @@ plt.legend(loc="upper right")
 
 # Further models and ideas tested (inferior performance) 
 
-Here's a rather undocumented set of further ideas tested. From simply adding regularisation to the above model all the way to deep learning models passing by classification algorithms like random forests. Perhaps the only place I saw potential was with random forests (treating the problem as a $``+1$, $``-1`$ classification problem) and deep learning if a genetic algorithm can be made to work (the given metric is non differentiable so this slightly dificulted my attemps and could be overcomed by a genetic algorith which does not rely on gradients).
+Here's a rather undocumented set of further ideas tested. From simply adding regularisation to the above model all the way to deep learning models passing by classification algorithms like random forests. Perhaps the only place I saw potential was with random forests (treating the problem as a $`+1$, $`-1`$ classification problem) and deep learning if a genetic algorithm can be made to work (the given metric is non differentiable so this slightly dificulted my attemps and could be overcomed by a genetic algorith which does not rely on gradients).
 
 
 ```python
@@ -7286,7 +7274,7 @@ plt.show()
     
 
 
-Look at that phase transition like change in the data at around $``100`$ components! This makes sense if we remember the discontinuous jump in the spectrum at around that very same point. Beautiful!
+Look at that phase transition like change in the data at around $`100`$ components! This makes sense if we remember the discontinuous jump in the spectrum at around that very same point. Beautiful!
 
 Let's be a bit more thorough by looking at what happens as we adjust the test/train split:
 
@@ -7369,7 +7357,7 @@ plt.show()
 
 So sure, a larger test set makes the data less noisy but it also brings down the test accurancy a bit over a percent. Having said that, it doesnt look like there is any notable qualitative changes across these different test splits. 
 
-All in all, it seems like this model, as it stands, is limited to a $`` <73\%`$ accurancy when using $``\sim 100`$ principal components. We could try to push this model a bit further (by perhaps rethinking our feature engenieering or with a more clever loss function) however we cannot resist to see what happens with a deep learning model. With this feature engenieering we did, the data set is no longer as small as we had previously thought since now the data is not simply repeated data due to our weighting process. In the next model we will see we can go the extra mile with deep neural networks and squeeze an extra $``1\%`$ or $``2\%$.
+All in all, it seems like this model, as it stands, is limited to a $` <73\%`$ accurancy when using $`\sim 100`$ principal components. We could try to push this model a bit further (by perhaps rethinking our feature engenieering or with a more clever loss function) however we cannot resist to see what happens with a deep learning model. With this feature engenieering we did, the data set is no longer as small as we had previously thought since now the data is not simply repeated data due to our weighting process. In the next model we will see we can go the extra mile with deep neural networks and squeeze an extra $`1\%`$ or $`2\%`$.
 
 # As a classification
 
@@ -8822,11 +8810,11 @@ df_y_train
 
 
 
-With that out of the way, we will now "analytically continue" the custom metric on which the challenge is assed to maximise our chances of performing well. This is necesary as the given metric is not differentiable ($\textrm{sign}(\cdot)`$ and $``|\cdot|`$ functions are not differentiable). The idea is very simple:
+With that out of the way, we will now "analytically continue" the custom metric on which the challenge is assed to maximise our chances of performing well. This is necesary as the given metric is not differentiable ($\textrm{sign}(\cdot)`$ and $`|\cdot|`$ functions are not differentiable). The idea is very simple:
 $$
 \textrm{sign}(x) \xrightarrow{A.C} 2\sigma(kx)-1 \quad \text{ and } \quad |x| \xrightarrow{A.C}  x\sigma(kx)-x\sigma(-kx),
 $$
-where $`\sigma(kx)`$ is the sigmoid function with $`k`$ playing the role of a smoothing parameter (the larger it is the sharper the fit). We code those two up and we create a `custom_loss` function by simply minimising the negative of the given metric $`-f(y^t,y^p)$.
+where $`\sigma(kx)`$ is the sigmoid function with $`k`$ playing the role of a smoothing parameter (the larger it is the sharper the fit). We code those two up and we create a `custom_loss` function by simply minimising the negative of the given metric $`-f(y^t,y^p)`$.
 
 
 ```python
@@ -8860,7 +8848,7 @@ print( custom_loss(y_true_test,y_pred_test) )
     tf.Tensor(-0.52873516, shape=(), dtype=float32)
 
 
-Which as you can see in the two print statements above, it very nicely approximates the exact value for large $`k$. For the actual deep learning model we follow a standard setup with some hidden layers, `relu` as activation function and some dropout to prevent overfitting. 
+Which as you can see in the two print statements above, it very nicely approximates the exact value for large $`k`$. For the actual deep learning model we follow a standard setup with some hidden layers, `relu` as activation function and some dropout to prevent overfitting. 
 
 
 ```python
@@ -9373,6 +9361,6 @@ def gather_data(X_train,supp_df,liquid_ID):
 ```
 
 # Conclusions
-In this notebook, we have developed a few models to predict the returns of liquid assets from available information on related iliquid assets. We first saw how a linear model, helped by a resonable previous feature engenieering, led to a predictive power of up to $`73\%$, which is around $`3\%`$ above the proposed benchmark solution (which is also based on a linear model). Inspired by the success of our feature engenieering and noting that it effectively enlarges the amount of observations from around $`3000`$ (too little for deep learnign) to around $`30.000`$ (sufficient for deep learning), we tried out a couple of deep learning models which were able to squeeze an extra $`1\%$-$2\%$. This left our top models less than $`0.5\%`$ away from the best submissions in the leaderboard. This leads me to believe a score of $`75\%`$ is within reach of this line of progress but unfortunately I dont have enough time to better tune the models or try new ones. 
+In this notebook, we have developed a few models to predict the returns of liquid assets from available information on related iliquid assets. We first saw how a linear model, helped by a resonable previous feature engenieering, led to a predictive power of up to $`73\%$, which is around $`3\%`$ above the proposed benchmark solution (which is also based on a linear model). Inspired by the success of our feature engenieering and noting that it effectively enlarges the amount of observations from around $`3000`$ (too little for deep learnign) to around $`30.000`$ (sufficient for deep learning), we tried out a couple of deep learning models which were able to squeeze an extra $`1\%$-$2\%`$. This left our top models less than $`0.5\%`$ away from the best submissions in the leaderboard. This leads me to believe a score of $`75\%`$ is within reach of this line of progress but unfortunately I dont have enough time to better tune the models or try new ones. 
 
 What a fun challenge!
