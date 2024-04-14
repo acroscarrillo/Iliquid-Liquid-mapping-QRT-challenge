@@ -1205,9 +1205,7 @@ $$\hat{Y}_j = \sum_{kn} \frac{X_k}{1 + (B_n^k-A_n^j)^2} \beta^{kn}_j + m_j,$$
 are very reasonable and deserve full attention. Think about it, if $`B_n^k\approx A_n^j`$ then $`X_k`$ is left untouch, however if $`B_n^k\neq A_n^j`$ then $`X_k`$ is suppressed by their difference squared (the $`1`$ just avoids $`1/0`$).  While the above expression is mathematically sound, it is a bit cumbersome to deal with since we are dealing with higher rank tensors for no good reason. We are essentially doing feature engineering so we can instead redefine what the features are by defining a new vector of features for each target $`Y_j`$
 $$\vec{F_j} = \left(1,\frac{X_1}{1+(B_1^1-A_1^j)^2},\frac{X_1}{1+(B_2^1-A_2^j)^2},\cdots, \frac{X_2}{1+(B_1^2-A_1^j)^2}, \cdots,\frac{X_N}{1+(B_4^N-A_4^j)^2} \right), \quad \text{where} \quad  \vec{F_j} \in \mathbb{R}^P$$
 so that
-$$
-\hat{Y}_j = \vec{F_j} \cdot \vec{\beta_j}, \quad \text{where} \quad \vec{\beta_j}[0]=m_j.
-$$
+$$\hat{Y}_j = \vec{F_j} \cdot \vec{\beta_j}, \quad \text{where} \quad \vec{\beta_j}[0]=m_j.$$
 Now this model is manifestly of the form of the linear models we are used to deal with. From now on, I will drop index $`j`$ as it is clear that with this model nor the loss nor the predicted $`Y_j`$ depend on anything with $`k\neq j`$.  Now if we use a mean squared error as our loss function then we already know that
 $$\mathcal{L} = \frac{1}{2S} \sum_\alpha^S (Y^\alpha - \hat{Y}^\alpha)^2 \equiv \frac{1}{2S} \sum_\alpha^S (Y^\alpha -  \vec{F}^\alpha \cdot \vec{\beta})^2 \quad \text{ then } \quad \partial_{\beta_j}\mathcal{L} = 0 \implies \vec{\beta} = (F^T F)^{-1} F^T \vec{y},$$
 where again here $`\vec{\beta}`$ is the entries of what we denoted above $`\vec{\beta_j}`$ for some particular $`j`$ and $`F\in \mathbb{R}^{S\times P}`$ is the matrix with $`S`$ rows (one for each observation) an $`P`$ columns (one for each flattened feature, c.f. definition of  $`\vec{F_j}`$ above).
