@@ -1199,26 +1199,41 @@ So we need to be careful with how we treat `ID_DAY`. So far, aside of to separat
 Armed with the lessons learned above, let's begin by reorganising the data. How do we want the data to be organised? Obviously we want the train data to contain all necessary information but how that information is arranged depends a bit on what model we will use. 
 
 Given the problem and the scarcity of data, it is hard not to start with a linear model of some sort. Thus we could propose 
-$$\hat{Y}_j = \sum_k X_k \beta^k_j + \sum_{lk} B_k^l \alpha_{lj}^k + \sum_k A_k^j \gamma_j^k + m_j,$$
+```math
+\hat{Y}_j = \sum_k X_k \beta^k_j + \sum_{lk} B_k^l \alpha_{lj}^k + \sum_k A_k^j \gamma_j^k + m_j
+```
 where we again implicitly assume $`Y_j`$ and $`X_k`$ are at the same time $`t`$ and matrices $`B_k^l`$ and $`A_k^j`$ store all the asset coefficients. One could reasonably argue that in fact only the difference between $`B`$ and $`A`$ are important as this difference tells you how relevant one particular $`X_k`$ given how similar is for a given $`Y_j`$. We propose that models like 
-$$\hat{Y}_j = \sum_{kn} \frac{X_k}{1 + (B_n^k-A_n^j)^2} \beta^{kn}_j + m_j,$$
+```math
+\hat{Y}_j = \sum_{kn} \frac{X_k}{1 + (B_n^k-A_n^j)^2} \beta^{kn}_j + m_j,
+```
 are very reasonable and deserve full attention. Think about it, if $`B_n^k\approx A_n^j`$ then $`X_k`$ is left untouch, however if $`B_n^k\neq A_n^j`$ then $`X_k`$ is suppressed by their difference squared (the $`1`$ just avoids $`1/0`$).  While the above expression is mathematically sound, it is a bit cumbersome to deal with since we are dealing with higher rank tensors for no good reason. We are essentially doing feature engineering so we can instead redefine what the features are by defining a new vector of features for each target $`Y_j`$
-$$\vec{F_j} = \left(1,\frac{X_1}{1+(B_1^1-A_1^j)^2},\frac{X_1}{1+(B_2^1-A_2^j)^2},\cdots, \frac{X_2}{1+(B_1^2-A_1^j)^2}, \cdots,\frac{X_N}{1+(B_4^N-A_4^j)^2} \right), \quad \text{where} \quad  \vec{F_j} \in \mathbb{R}^P$$
+```math
+\vec{F_j} = \left(1,\frac{X_1}{1+(B_1^1-A_1^j)^2},\frac{X_1}{1+(B_2^1-A_2^j)^2},\cdots, \frac{X_2}{1+(B_1^2-A_1^j)^2}, \cdots,\frac{X_N}{1+(B_4^N-A_4^j)^2} \right), \quad \text{where} \quad  \vec{F_j} \in \mathbb{R}^P
+```
 so that
-$$\hat{Y}_j = \vec{F_j} \cdot \vec{\beta_j}, \quad \text{where} \quad \vec{\beta_j}[0]=m_j.$$
+```math
+\hat{Y}_j = \vec{F_j} \cdot \vec{\beta_j}, \quad \text{where} \quad \vec{\beta_j}[0]=m_j.
+```
 Now this model is manifestly of the form of the linear models we are used to deal with. From now on, I will drop index $`j`$ as it is clear that with this model nor the loss nor the predicted $`Y_j`$ depend on anything with $`k\neq j`$.  Now if we use a mean squared error as our loss function then we already know that
-$$\mathcal{L} = \frac{1}{2S} \sum_\alpha^S (Y^\alpha - \hat{Y}^\alpha)^2 \equiv \frac{1}{2S} \sum_\alpha^S (Y^\alpha -  \vec{F}^\alpha \cdot \vec{\beta})^2 \quad \text{ then } \quad \partial_{\beta_j}\mathcal{L} = 0 \implies \vec{\beta} = (F^T F)^{-1} F^T \vec{y},$$
+```math
+\mathcal{L} = \frac{1}{2S} \sum_\alpha^S (Y^\alpha - \hat{Y}^\alpha)^2 \equiv \frac{1}{2S} \sum_\alpha^S (Y^\alpha -  \vec{F}^\alpha \cdot \vec{\beta})^2 \quad \text{ then } \quad \partial_{\beta_j}\mathcal{L} = 0 \implies \vec{\beta} = (F^T F)^{-1} F^T \vec{y},
+```
 where again here $`\vec{\beta}`$ is the entries of what we denoted above $`\vec{\beta_j}`$ for some particular $`j`$ and $`F\in \mathbb{R}^{S\times P}`$ is the matrix with $`S`$ rows (one for each observation) an $`P`$ columns (one for each flattened feature, c.f. definition of  $`\vec{F_j}`$ above).
 
 Before moving on I feel like there is one last technical detail worth commenting. We weighted the returns above so that assets that are different are suppressed. But, what makes two different assets far away? Well, at first glance we assumed that two assets are different if their $`A`$'s and $`B`$'s are different or in other words we essentially assumed
-$$\textrm{dist}(R_j,R_k) = \sum_n (A_n^j-B^k_n)^2,$$
+```math
+\textrm{dist}(R_j,R_k) = \sum_n (A_n^j-B^k_n)^2,
+```
 but maybe there are some $`A_n^j`$'s that contribute more in distinguishing assets, so shouldnt we find out a set of $`\beta_m`$'s to weight the above euclidian distance
-$$\textrm{dist}(R_j,R_k) = \sum_n \beta_n (A_n^j-B^k_n)^2,$$
+```math
+\textrm{dist}(R_j,R_k) = \sum_n \beta_n (A_n^j-B^k_n)^2,
+```
 what about other distance functions? Well first of all, the answer is we have implicitly already fitted those $`\beta_m`$'s. The reason behind why we have split each return into $`4`$ different weighted returns is to allow each to have its own coefficient (from the linear regression for instance). In this way, the learning algorithm will have these independent pieces of information to play with. Having said that, there are indeed alternative ways we could think of to estimate these $`\beta_m`$'s, for instance by cooking some loss function that demands two assets that behave similarly over all available observations to be close in some precise sense. However, we will not persue this direction now and rather focus on the bigger picture.
 
 ### Reshaping the data
 As argued, it is clear that the input data to predict the $`j`$ -th asset should  contain all the iliquid returns `RET_n` weighted with all the iliquid class coefficients `B_n_k` and the $`j`$ th liquid asset class coefficients `A_n_j`. So we will stack it like
-$$X_{train} = 
+```math
+X_{train} = 
 \begin{bmatrix}
     F[1]_j^{t=1} &  F[2]_j^{t=1} & \cdots  &  F[P]_j^{t=1} \\
      F[1]_j^{t=2} &  F[2]_j^{t=2} & \cdots  &  F[P]_j^{t=2} \\
@@ -1230,7 +1245,8 @@ Y_{train} = \begin{bmatrix}
     Y_j^{t=2} \\
     \vdots \\
     Y_j^{t=S} \\
-\end{bmatrix}.$$
+\end{bmatrix}.
+```
 where each row is an individual (day) observation. 
 
 By looking at the data, we see we need to train $`100`$ individual linear models, one for each liquid asset as explained above. Let's extract the train data for one particular liquid asset from the total data and take it from there.
