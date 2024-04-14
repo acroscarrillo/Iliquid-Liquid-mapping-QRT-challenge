@@ -22,13 +22,9 @@ warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 ## Problem background and motivation
 The problem at hand consists on mapping the *signals* (i.e. information) of illiquid assets to signals of liquid assets. The idea here is of course that one prefers to hold liquid assets over illiquid assets. The reason for this is actually more profund than just because you then have a tighter control on what you can do with your assets and when. For instance, one can easily see that when you are limited by liquidity, your initial investment cannot be as large as you wish, so if you want to invest a large sum you will have to dosify it during a long period of time. But then your total investment is not benefiting from the exponential growth from the start but progressively over a long period. Mathematically, for a total investment $`I_0`$ on a liquid asset with return $`R`$ over a time $`t`$ one has
-$$
-I_t^L = I_0 R^t = \frac{I_0}{n}(R^t + R^t + \cdots).
-$$
+$$I_t^L = I_0 R^t = \frac{I_0}{n}(R^t + R^t + \cdots).$$
 However, for an illiquid asset one is forced to split this investment into $n$ chunks and one yields instead
-$$
-I_t^I = \frac{I_0}{n} R^t + \frac{I_0}{n} R^{t-1} + \cdots = \frac{I_0}{n}(R^t + R^{t-1}+ \cdots),
-$$
+$$I_t^I = \frac{I_0}{n} R^t + \frac{I_0}{n} R^{t-1} + \cdots = \frac{I_0}{n}(R^t + R^{t-1}+ \cdots),$$
 which clearly makes it a worse investment!
 
  Thus, it would be great if we can predict, using available signals from illiquid assets, signals of liquid assets. One simple example of this might be predicting how a (liquid) real state fund will behave based on the information available on the housing market (which is more illiquid). In this way you dont need to get into the difficult position of owning (and managing) houses and instead you invest on the liquid shares of real states funds whose value will correlate with the housing market you studied.
@@ -50,9 +46,7 @@ There is just one small catch: we are told that
 > the dates are randomized and anonymized so there is no continuity or link between any dates.
 
  Thus, there is not much point in making $`Y`$ depend on $`t`$ so instead, we are going to treat each different day as an independent observation of the same random process for the purposes of training. In fact, the days inside the test data are not even present in the training data. So a priori, we propose the following map
-$$
-Y_j = f(X_1,\cdots,X_N; A^j_1,\cdots,A^j_4, B_1^1,B^1_2,\cdots,B^2_1,\cdots,B_N^4 ),  \text{ for each }  j\in \{1,\cdots,M\} 
-$$
+$$Y_j = f(X_1,\cdots,X_N; A^j_1,\cdots,A^j_4, B_1^1,B^1_2,\cdots,B^2_1,\cdots,B_N^4 ),  \text{ for each }  j\in \{1,\cdots,M\}$$
 
 where this expression is understood to be implicitly evaluated for the same $`t`$. 
 
